@@ -1,0 +1,95 @@
+/* styles3.css */
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f7f6; /* Light background for better readability */
+    color: #333; /* Dark text for contrast */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  .dashboard-container {
+    width: 90%;
+    max-width: 1200px;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #3e8e41; /* Green accent for headings */
+    font-family: 'Georgia', serif;
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.1);
+    border-bottom: 2px solid #1e5631; /* Dark green for separation */
+    padding-bottom: 10px;
+  }
+  
+  .soldiers-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .soldier-card {
+    background-color: #ffffff; /* White background for cards */
+    border: 1px solid #ddd; /* Light border for separation */
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    width: 100%;
+    max-width: 300px;
+    padding: 20px;
+    text-align: left;
+    color: #333; /* Dark text for readability */
+  }
+  
+  .soldier-card h2 {
+    font-size: 1.5rem;
+    color: #2b2d42; /* Dark gray-blue for headings */
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+  }
+  
+  .soldier-card p {
+    font-size: 1rem;
+    margin: 5px 0 15px;
+    color: #555; /* Muted text for descriptive content */
+  }
+  
+  .health-data {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  .health-item {
+    background-color: #f8f9fa; /* Light gray for health items */
+    border: 1px solid #ddd; /* Subtle border for definition */
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  }
+  
+  .health-item h3 {
+    font-size: 1rem;
+    color: #000000; /* Green for health titles */
+    margin-bottom: 5px;
+  }
+  
+  .data-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #4caf50; /* Bright green for health values */
+  }
+  
+  @media (max-width: 768px) {
+    .health-data {
+      grid-template-columns: 1fr;
+    }
+  }

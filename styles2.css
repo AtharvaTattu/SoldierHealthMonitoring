@@ -1,0 +1,97 @@
+/* General body styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Dashboard container styles */
+.dashboard-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+/* Heading styles */
+.dashboard-container h1 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Form label styles */
+form label {
+    display: block;
+    text-align: left;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+/* Form input styles */
+form input[type="text"],
+form input[type="password"],
+form input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Focused input styles */
+form input:focus {
+    outline: none;
+    border-color: #4caf50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+/* Submit button styles */
+form button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+/* Submit button hover effect */
+form button[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .dashboard-container {
+        padding: 20px;
+    }
+
+    form label {
+        font-size: 14px;
+    }
+
+    form input[type="text"],
+    form input[type="password"],
+    form input[type="date"] {
+        font-size: 12px;
+    }
+
+    form button[type="submit"] {
+        font-size: 14px;
+    }
+}

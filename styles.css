@@ -1,0 +1,106 @@
+/* styles.css */
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f4f7f6; /* Light gray background */
+  color: #333; /* Neutral dark text color */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container {
+  background-color: #ffffff; /* White background */
+  border-radius: 12px; /* Rounded corners */
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15); /* Soft shadow for depth */
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-container:hover {
+  transform: scale(1.03); /* Slight hover effect */
+  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.25); /* Enhanced shadow on hover */
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #1e3c72; /* Dark blue text */
+  font-family: 'Georgia', serif;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+}
+
+form label {
+  font-size: 1rem;
+  color: #333; /* Neutral dark gray */
+  display: block;
+  text-align: left;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 5px;
+  background-color: #f9f9f9; /* Light gray background */
+  color: #333; /* Dark text */
+  font-size: 14px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+form input:focus {
+  outline: none;
+  border: 1px solid #1e3c72; /* Dark blue focus border */
+  box-shadow: 0px 0px 8px rgba(30, 60, 114, 0.5); /* Blue glow effect */
+}
+
+button {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(90deg, #3e8e41, #2a652b); /* Gradient green */
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #ffffff; /* White text */
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background: linear-gradient(90deg, #4caf50, #388e3c); /* Brighter green */
+  transform: translateY(-2px); /* Slight lift effect */
+}
+
+button:active {
+  transform: translateY(1px); /* Pressed state */
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0px 0px 8px rgba(76, 175, 80, 0.5); /* Green focus glow */
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  form label,
+  form input,
+  button {
+    font-size: 0.9rem;
+  }
+}
+  

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soldier Location Tracking - Indian Army</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+   body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f7f6;
+}
+
+/* Header Styling */
+header {
+  background-color: #333;
+  color: white;
+  padding: 15px 0;
+  text-align: center;
+  border-bottom: 4px solid #3e8e41;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+/* Content Area */
+.content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Button Styling */
+.button-container .home-btn {
+  background-color: #3e8e41;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.button-container .home-btn:hover {
+  background-color: #3e8e41;
+}
+
+/* Search Bar Styling */
+.search-container input {
+  width: 300px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.search-container button {
+  background-color: #3e8e41;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.search-container button:hover {
+  background-color: #35865e;
+}
+
+/* Table Styling */
+.table-container {
+  width: 80%;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.table-container h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  background-color: #f4f4f4;
+  color: #333;
+  font-weight: bold;
+}
+
+td {
+  background-color: #fff;
+  color: #333;
+}
+
+td:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}
+
+/* Map Container */
+.map-container {
+  width: 80%;
+  margin: 20px auto;
+  text-align: center;
+}
+
+#map {
+  height: 500px;
+  width: 100%;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .table-container, .map-container {
+    width: 100%;
+  }
+
+  .search-container input {
+    width: 200px;
+  }
+}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Location Tracking</h1>
+  </header>
+
+  <div class="content">
+    <div class="button-container">
+      <!-- Home Button to redirect to the dashboard -->
+      <button class="home-btn" onclick="window.location.href = 'dashboard.html';">Go to Dashboard</button>
+    </div>
+
+    <!-- Search bar and button to filter soldiers -->
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search by Name or ID" />
+      <button onclick="searchSoldier()">Search</button>
+    </div>
+
+    <div class="table-container">
+      <h2>Soldier Data</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Soldier ID</th>
+            <th>Name</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody id="soldier-table-body">
+          <!-- Dynamic data will be populated here -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="map-container">
+      <h2>Soldier Locations on Map</h2>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const apiURL = "https://nbfjl9bui6.execute-api.us-east-1.amazonaws.com/a/dev";
+
+    // Initialize the map and set its view to Jammu and Kashmir
+    const map = L.map('map').setView([34.0, 74.8], 8);
+
+    // Set up the OpenStreetMap layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // To store markers for soldiers
+    const allMarkers = [];
+
+    // Function to fetch and render soldier data
+    async function fetchAndRenderData() {
+      try {
+        const response = await fetch(apiURL);
+        const jsonResponse = await response.json();
+        const soldierData = JSON.parse(jsonResponse.body).data;
+
+        // Sort the soldier data based on the timestamp (assuming the timestamp is available)
+        soldierData.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+
+        // Get the most recent soldier data (in case there are multiple records per soldier)
+        const recentData = [];
+        const seenSoldiers = new Set();
+
+        soldierData.forEach(soldier => {
+          if (!seenSoldiers.has(soldier.ID)) {
+            recentData.push(soldier);
+            seenSoldiers.add(soldier.ID);
+          }
+        });
+
+        // Populate the table and map with the most recent data
+        const tableBody = document.getElementById('soldier-table-body');
+        recentData.forEach(soldier => {
+          // Add data to the table
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${soldier.ID}</td>
+            <td>${soldier.Name}</td>
+            <td>${soldier.Location}</td>
+          `;
+          tableBody.appendChild(row);
+
+          // Add a marker to the map for each soldier
+          const coords = soldier.Location.split(',').map(coord => parseFloat(coord.trim()));
+          const marker = L.marker(coords)
+            .addTo(map)
+            .bindPopup(`<strong>${soldier.Name}</strong><br>Location: ${soldier.Location}`);
+          
+          allMarkers.push({ soldier, marker });
+        });
+      } catch (error) {
+        console.error("Error fetching soldier data:", error);
+      }
+    }
+
+   // Function to search and highlight a soldier
+function searchSoldier() {
+  const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+  
+  // If the search input is empty, don't perform the search
+  if (searchTerm === "") {
+    alert("Please enter a soldier's name or ID to search.");
+    return;
+  }
+
+  // Reset the map and markers for highlighting
+  allMarkers.forEach(({ marker }) => marker.setIcon(new L.Icon.Default()));
+
+  const searchResults = allMarkers.filter(({ soldier }) => 
+    soldier.ID.toLowerCase().includes(searchTerm) || soldier.Name.toLowerCase().includes(searchTerm)
+  );
+
+  if (searchResults.length === 0) {
+    alert("No soldier found with that ID or name.");
+  } else {
+    searchResults.forEach(({ marker }) => {
+      marker.setIcon(new L.Icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/128/929/929426.png', // Use a custom icon for highlighted soldiers
+        iconSize: [30, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34]
+      }));
+    });
+  }
+}
+
+    // Fetch and render data on page load
+    fetchAndRenderData();
+  </script>
+</body>
+</html>

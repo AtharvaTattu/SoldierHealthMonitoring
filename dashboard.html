@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soldier Dashboard</title>
+  <link rel="stylesheet" href="styles7.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <header>
+    <h1>Soldier Monitoring Dashboard</h1>
+  </header>
+  
+  <div class="dashboard-container">
+    <section id="main-section">
+      <nav class="button-nav">
+        <button onclick="location.href='SoldierHealthData.html'">Soldier's Health Data</button>
+        <button onclick="location.href='location.html'">Location Tracking</button>
+        <button onclick="location.href='AddSoldier.html'">Add Soldier</button>
+        <button onclick="location.href='sendAlerts.html'">Send Alerts</button>
+        <button onclick="location.href='about.html'">About</button>
+      </nav>
+      
+      <div id="map-section">
+        <h2>Live Soldier Locations</h2>
+        <div id="map"></div>
+      </div>
+      
+      <div id="metrics-section">
+        <h2></h2>
+        <div class="metrics-container" id="metrics"></div>
+      </div>
+    </section>
+    
+    <aside id="alerts-section">
+      <h2>Alerts</h2>
+      <div id="alerts"></div>
+      <!-- Clear All Alerts Button -->
+      
+    </aside>
+  </div>
+  <button id="clear-alerts-btn" class="clear-alerts-btn">Clear All Alerts</button>
+
+  <script src="app.js"></script>
+</body>
+</html>

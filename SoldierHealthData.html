@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Data Dashboard</title>
+  <link rel="stylesheet" href="styles3.css">
+  <style>
+    .data-value.normal {
+      color: #4caf50; /* Green for normal */
+    }
+    .data-value.abnormal {
+      color: #e74c3c; /* Red for abnormal */
+    }
+
+    #search-container {
+      margin: 20px 0;
+      text-align: center;
+    }
+    #search-container input[type="text"] {
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    #search-container button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #search-container button:hover {
+      background-color: #45a049;
+    }
+    .dashboard-btn, .back-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: white;
+      text-align: center;
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+    }
+    .dashboard-btn:hover, .back-btn:hover {
+      background-color: #45a049;
+    }
+    .back-btn {
+      display: none;
+    }
+
+    /* Delete Button CSS */
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard-container">
+  <h1>Health Data Dashboard</h1>
+  
+  <div id="search-container">
+    <input type="text" id="searchInput" placeholder="Search Soldier by Name or ID">
+    <button onclick="searchSoldier()">Search</button>
+  </div>
+
+  <div class="soldiers-container" id="soldiers-container">
+    <!-- Soldier cards will be displayed here -->
+  </div>
+
+  <button class="back-btn" onclick="goBackToDashboard()">Back</button>
+  <button class="dashboard-btn" onclick="redirectToDashboard()">Go to Dashboard</button>
+</div>
+
+<script>
+  const apiUrl = "https://nbfjl9bui6.execute-api.us-east-1.amazonaws.com/a/dev";
+
+  const ranges = {
+    heartrate: [60, 100],
+    oxygen: [94, 100],
+    temperature: [36.1, 37.5],
+    environmentalTemp: [-30, 50],
+    airQuality: [0, 50],
+    battery: [20, 100],
+    bloodpressure: { systolic: [90, 130], diastolic: [60, 80] }
+  };
+
+  // Function to check if a value is normal
+  function isNormal(metric, value) {
+    if (metric === "bloodpressure") {
+      const [systolic, diastolic] = value.split("/").map(Number);
+      return (
+        systolic >= ranges.bloodpressure.systolic[0] &&
+        systolic <= ranges.bloodpressure.systolic[1] &&
+        diastolic >= ranges.bloodpressure.diastolic[0] &&
+        diastolic <= ranges.bloodpressure.diastolic[1]
+      );
+    } else {
+      return value >= ranges[metric][0] && value <= ranges[metric][1];
+    }
+  }
+
+  // Function to create or update soldier card
+  function createOrUpdateSoldierCard(soldier) {
+    const soldiersContainer = document.getElementById("soldiers-container");
+    let soldierCard = document.querySelector(`.soldier-card[data-id="${soldier.ID}"]`);
+
+    if (!soldierCard) {
+      // Create new card if it doesn't exist
+      soldierCard = document.createElement('div');
+      soldierCard.classList.add('soldier-card');
+      soldierCard.setAttribute('data-id', soldier.ID);
+      soldiersContainer.appendChild(soldierCard);
+    }
+
+    // Update the card with the latest data
+    soldierCard.innerHTML = `
+      <h2>Soldier: ${soldier.Name}</h2>
+      <p>ID: ${soldier.ID}</p>
+      <div class="health-data">
+        <div class="health-item">
+          <h3>Heart Rate</h3>
+          <p class="data-value" data-metric="heartrate">${soldier.HeartRate} bpm</p>
+        </div>
+        <div class="health-item">
+          <h3>O2 Level</h3>
+          <p class="data-value" data-metric="oxygen">${soldier.OxygenLevel}%</p>
+        </div>
+        <div class="health-item">
+          <h3>Body Temperature</h3>
+          <p class="data-value" data-metric="temperature">${soldier.BodyTemperature}°C</p>
+        </div>
+        <div class="health-item">
+          <h3>Blood Pressure</h3>
+          <p class="data-value" data-metric="bloodpressure">${soldier.BloodPressure} mmHg</p>
+        </div>
+        <div class="health-item">
+          <h3>Environmental Temperature</h3>
+          <p class="data-value" data-metric="environmentalTemp">${soldier.EnvironmentalTemp}°C</p>
+        </div>
+        <div class="health-item">
+          <h3>Air Quality Index</h3>
+          <p class="data-value" data-metric="airQuality">${soldier["Air Quality Index"]}</p>
+        </div>
+        <div class="health-item">
+          <h3>Battery Level</h3>
+          <p class="data-value" data-metric="battery">${soldier.BatteryLevel}%</p>
+        </div>
+      </div>
+      <button class="delete-btn" onclick="deleteSoldierCard(${soldier.ID})">Delete Soldier</button>
+    `;
+
+    // Apply normal or abnormal class based on values
+    soldierCard.querySelectorAll(".data-value").forEach((element) => {
+      const metric = element.dataset.metric;
+      const value =
+        metric === "bloodpressure"
+          ? element.textContent.split(" ")[0]
+          : parseFloat(element.textContent);
+      element.classList.remove("normal", "abnormal");
+      element.classList.add(isNormal(metric, value) ? "normal" : "abnormal");
+    });
+  }
+
+  // Function to delete soldier card
+  function deleteSoldierCard(soldierId) {
+    // Remove the soldier card from the view
+    const soldierCard = document.querySelector(`.soldier-card[data-id="${soldierId}"]`);
+    if (soldierCard) {
+      soldierCard.remove();
+    }
+
+    // Update the soldier data in localStorage
+    let soldierData = JSON.parse(localStorage.getItem('soldiers')) || [];
+    soldierData = soldierData.filter(soldier => soldier.ID !== soldierId);
+    localStorage.setItem('soldiers', JSON.stringify(soldierData));
+  }
+
+  // Fetch and update data
+  async function fetchSoldierData() {
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error("API fetch failed");
+
+      const { body } = await response.json();
+      const { data } = JSON.parse(body);
+
+      data.forEach((soldier) => {
+        createOrUpdateSoldierCard(soldier);
+      });
+    } catch (error) {
+      console.error("Error fetching soldier data:", error);
+    }
+  }
+
+  // Render Soldier Cards from Local Storage
+  function renderSoldierCards() {
+    const soldiersContainer = document.getElementById('soldiers-container');
+    const soldierData = JSON.parse(localStorage.getItem('soldiers')) || [];
+
+    soldierData.forEach((soldier) => {
+      createOrUpdateSoldierCard(soldier);
+    });
+  }
+
+  // Clear localStorage on the second refresh
+  window.addEventListener('load', () => {
+    let pageLoadCount = parseInt(localStorage.getItem('pageLoadCount') || '0', 10);
+
+    // Increment the page load count
+    pageLoadCount += 1;
+
+    // If the page has been loaded twice, clear localStorage
+    if (pageLoadCount >= 2) {
+      localStorage.clear(); // Clear localStorage on second refresh
+      pageLoadCount = 0; // Reset page load count
+    }
+
+    // Store the updated page load count
+    localStorage.setItem('pageLoadCount', pageLoadCount);
+
+    renderSoldierCards();  // Render cards after clearing
+  });
+
+  // Search Soldier based on Name or ID
+  function searchSoldier() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const allSoldierCards = document.querySelectorAll('.soldier-card');
+    let found = false;
+
+    allSoldierCards.forEach(card => {
+      const soldierName = card.querySelector('h2').textContent.toLowerCase();
+      const soldierId = card.querySelector('p').textContent.toLowerCase();
+
+      if (soldierName.includes(searchInput) || soldierId.includes(searchInput)) {
+        card.style.display = '';
+        found = true;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    if (!found) {
+      alert('No soldier found with that name or ID.');
+    }
+
+    document.querySelector('.back-btn').style.display = 'block';
+  }
+
+  // Redirect to Dashboard
+  function redirectToDashboard() {
+    window.location.href = 'dashboard.html';
+  }
+
+  // Go back to the Health Data Dashboard
+  function goBackToDashboard() {
+    window.location.href = 'SoldierHealthData.html';
+  }
+
+  fetchSoldierData();
+</script>
+
+</body>
+</html>
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Data Dashboard</title>
+  <link rel="stylesheet" href="styles3.css">
+  <style>
+    .data-value.normal {
+      color: #4caf50; /* Green for normal */
+    }
+    .data-value.abnormal {
+      color: #e74c3c; /* Red for abnormal */
+    }
+
+    /* Style for search bar and buttons */
+    #search-container {
+      margin: 20px 0;
+      text-align: center;
+    }
+    #search-container input[type="text"] {
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    #search-container button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #search-container button:hover {
+      background-color: #45a049;
+    }
+    .dashboard-btn, .back-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: white;
+      text-align: center;
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+    }
+    .dashboard-btn:hover, .back-btn:hover {
+      background-color: #45a049;
+    }
+    .back-btn {
+      display: none; /* Initially hidden */
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard-container">
+  <h1>Health Data Dashboard</h1>
+  
+   Search Bar for Soldier 
+  <div id="search-container">
+    <input type="text" id="searchInput" placeholder="Search Soldier by Name or ID">
+    <button onclick="searchSoldier()">Search</button>
+  </div>
+
+   Soldier Cards will be dynamically added here 
+  <div class="soldiers-container" id="soldiers-container">
+  </div>
+
+   Back Button to go back to dashboard 
+  <button class="back-btn" onclick="goBackToDashboard()">Back</button>
+
+  Redirect to Dashboard Button 
+  <button class="dashboard-btn" onclick="redirectToDashboard()">Go to Dashboard</button>
+</div>
+
+<script>
+  const apiUrl = "https://nbfjl9bui6.execute-api.us-east-1.amazonaws.com/a/dev";
+
+  // Normal ranges
+  const ranges = {
+    heartrate: [60, 100],
+    oxygen: [94, 100],
+    temperature: [36.1, 37.5], // Normal body temp in Celsius
+    bloodpressure: { systolic: [90, 130], diastolic: [60, 80] }
+  };
+
+  // Function to check if a value is normal
+  function isNormal(metric, value) {
+    if (metric === "bloodpressure") {
+      const [systolic, diastolic] = value.split("/").map(Number);
+      return (
+        systolic >= ranges.bloodpressure.systolic[0] &&
+        systolic <= ranges.bloodpressure.systolic[1] &&
+        diastolic >= ranges.bloodpressure.diastolic[0] &&
+        diastolic <= ranges.bloodpressure.diastolic[1]
+      );
+    } else {
+      return value >= ranges[metric][0] && value <= ranges[metric][1];
+    }
+  }
+
+  // Function to create and render soldier card
+  function createSoldierCard(soldier) {
+    const soldierCard = document.createElement('div');
+    soldierCard.classList.add('soldier-card');
+    
+    soldierCard.innerHTML = `
+      <h2>Soldier: ${soldier.Name}</h2>
+      <p>ID: ${soldier.ID}</p>
+      <div class="health-data">
+        <div class="health-item">
+          <h3>Heart Rate</h3>
+          <p class="data-value" data-metric="heartrate">${soldier.HeartRate} bpm</p>
+        </div>
+        <div class="health-item">
+          <h3>O2 Level</h3>
+          <p class="data-value" data-metric="oxygen">${soldier.OxygenLevel}%</p>
+        </div>
+        <div class="health-item">
+          <h3>Body Temperature</h3>
+          <p class="data-value" data-metric="temperature">${soldier.BodyTemperature}°C</p>
+        </div>
+        <div class="health-item">
+          <h3>Blood Pressure</h3>
+          <p class="data-value" data-metric="bloodpressure">${soldier.BloodPressure} mmHg</p>
+        </div>
+      </div>
+    `;
+
+    // Apply normal or abnormal class based on values
+    soldierCard.querySelectorAll(".data-value").forEach((element) => {
+      const metric = element.dataset.metric;
+      const value = metric === "bloodpressure" ? element.textContent.split(" ")[0] : parseFloat(element.textContent);
+      element.classList.remove("normal", "abnormal");
+      element.classList.add(isNormal(metric, value) ? "normal" : "abnormal");
+    });
+
+    document.getElementById('soldiers-container').appendChild(soldierCard);
+  }
+
+  // Function to update soldier data
+  function updateSoldierData(soldier) {
+    const existingCard = Array.from(document.querySelectorAll(".soldier-card"))
+      .find((card) => card.querySelector("h2").textContent.includes(soldier.Name));
+
+    // If the soldier's card exists, update it, else create a new one
+    if (existingCard) {
+      existingCard.querySelector('[data-metric="heartrate"]').textContent = `${soldier.HeartRate} bpm`;
+      existingCard.querySelector('[data-metric="oxygen"]').textContent = `${soldier.OxygenLevel}%`;
+      existingCard.querySelector('[data-metric="temperature"]').textContent = `${soldier.BodyTemperature}°C`;
+      existingCard.querySelector('[data-metric="bloodpressure"]').textContent = `${soldier.BloodPressure} mmHg`;
+
+      // Apply normal/abnormal class updates
+      existingCard.querySelectorAll(".data-value").forEach((element) => {
+        const metric = element.dataset.metric;
+        const value = metric === "bloodpressure" ? element.textContent.split(" ")[0] : parseFloat(element.textContent);
+        element.classList.remove("normal", "abnormal");
+        element.classList.add(isNormal(metric, value) ? "normal" : "abnormal");
+      });
+    } else {
+      // If not found, create a new soldier card
+      createSoldierCard(soldier);
+    }
+  }
+
+  // Fetch and update data
+  async function fetchSoldierData() {
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error("API fetch failed");
+
+      const { body } = await response.json();
+      const { data } = JSON.parse(body);
+
+      // Create or update soldier cards for each soldier in the data
+      data.forEach((soldier) => {
+        updateSoldierData(soldier);
+      });
+    } catch (error) {
+      console.error("Error fetching soldier data:", error);
+    }
+  }
+   // Function to create or update soldier card
+   function createOrUpdateSoldierCard(soldier) {
+    const soldiersContainer = document.getElementById("soldiers-container");
+    let soldierCard = document.querySelector(`.soldier-card[data-id="${soldier.ID}"]`);
+
+    if (!soldierCard) {
+      // Create new card if it doesn't exist
+      soldierCard = document.createElement('div');
+      soldierCard.classList.add('soldier-card');
+      soldierCard.setAttribute('data-id', soldier.ID);
+      soldiersContainer.appendChild(soldierCard);
+    }
+
+    // Update the card with the latest data
+    soldierCard.innerHTML = `
+      <h2>Soldier: ${soldier.Name}</h2>
+      <p>ID: ${soldier.ID}</p>
+      <div class="health-data">
+        <div class="health-item">
+          <h3>Heart Rate</h3>
+          <p class="data-value" data-metric="heartrate">${soldier.HeartRate} bpm</p>
+        </div>
+        <div class="health-item">
+          <h3>O2 Level</h3>
+          <p class="data-value" data-metric="oxygen">${soldier.OxygenLevel}%</p>
+        </div>
+        <div class="health-item">
+          <h3>Body Temperature</h3>
+          <p class="data-value" data-metric="temperature">${soldier.BodyTemperature}°C</p>
+        </div>
+        <div class="health-item">
+          <h3>Blood Pressure</h3>
+          <p class="data-value" data-metric="bloodpressure">${soldier.BloodPressure} mmHg</p>
+        </div>
+        <div class="health-item">
+          <h3>Environmental Temperature</h3>
+          <p class="data-value" data-metric="environmentalTemp">${soldier.EnvironmentalTemp}°C</p>
+        </div>
+        <div class="health-item">
+          <h3>Air Quality Index</h3>
+          <p class="data-value" data-metric="airQuality">${soldier["Air Quality Index"]}</p>
+        </div>
+        <div class="health-item">
+          <h3>Battery Level</h3>
+          <p class="data-value" data-metric="battery">${soldier.BatteryLevel}%</p>
+        </div>
+      </div>
+      <button class="delete-btn" onclick="deleteSoldierCard(${soldier.ID})">Delete Soldier</button>
+    `;
+
+    // Apply normal or abnormal class based on values
+    soldierCard.querySelectorAll(".data-value").forEach((element) => {
+      const metric = element.dataset.metric;
+      const value =
+        metric === "bloodpressure"
+          ? element.textContent.split(" ")[0]
+          : parseFloat(element.textContent);
+      element.classList.remove("normal", "abnormal");
+      element.classList.add(isNormal(metric, value) ? "normal" : "abnormal");
+    });
+  }
+
+  // Search Soldier based on Name or ID
+  function searchSoldier() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const allSoldierCards = document.querySelectorAll('.soldier-card');
+    let found = false;
+
+    allSoldierCards.forEach(card => {
+      const soldierName = card.querySelector('h2').textContent.toLowerCase();
+      const soldierId = card.querySelector('p').textContent.toLowerCase();
+
+      if (soldierName.includes(searchInput) || soldierId.includes(searchInput)) {
+        card.style.display = '';
+        found = true;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    if (!found) {
+      alert('No soldier found with that name or ID.');
+    }
+
+    // Show the "Back" button after search
+    document.querySelector('.back-btn').style.display = 'block';
+  }
+
+  // Redirect to Dashboard
+  function redirectToDashboard() {
+    window.location.href = 'dashboard.html'; // Adjust to your actual dashboard URL
+  }
+
+  // Go back to the Health Data Dashboard
+  function goBackToDashboard() {
+    window.location.href = 'SoldierHealthData.html'; // Adjust to the page you want to return to
+  }
+
+  fetchSoldierData();
+</script>
+
+</body>
+</html> -->

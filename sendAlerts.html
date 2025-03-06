@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Alerts</title>
+  <style>
+    /* General body styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* Dashboard container styles */
+    .dashboard-container {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    /* Heading styles */
+    .dashboard-container h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* Form label styles */
+    form label {
+      display: block;
+      text-align: left;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    /* Form input styles */
+    form input[type="text"],
+    form textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    /* Focused input styles */
+    form input:focus,
+    form textarea:focus {
+      outline: none;
+      border-color: #4caf50;
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    }
+
+    /* Submit button styles */
+    form button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+
+    /* Submit button hover effect */
+    form button:hover {
+      background-color: #45a049;
+    }
+
+    /* Go Back button styles */
+    .go-back-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+
+    /* Go Back button hover effect */
+    .go-back-btn:hover {
+      background-color: #1976d2;
+    }
+
+    /* Alert message styles */
+    .alert-message {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #4caf50;
+      display: none;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .dashboard-container {
+        padding: 20px;
+      }
+
+      form label {
+        font-size: 14px;
+      }
+
+      form input[type="text"],
+      form textarea {
+        font-size: 12px;
+      }
+
+      form button,
+      .go-back-btn {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1>Send Alerts</h1>
+    <form id="alertForm">
+      <label for="soldierId">Soldier ID</label>
+      <input type="text" id="soldierId" placeholder="Enter Soldier ID or leave blank for all" />
+
+      <label for="message">Message</label>
+      <textarea id="message" rows="5" placeholder="Type your message"></textarea>
+
+      <button type="button" onclick="showAlertMessage()">Send Alert</button>
+    </form>
+
+    <div class="alert-message" id="alertMessage"></div>
+
+    <!-- Go Back button -->
+    <button class="go-back-btn" onclick="goBackToDashboard()">Go Back to Dashboard</button>
+  </div>
+
+  <script>
+    function showAlertMessage() {
+      const soldierId = document.getElementById("soldierId").value.trim();
+      const message = document.getElementById("message").value.trim();
+
+      if (!message) {
+        alert("Message cannot be empty!");
+        return;
+      }
+
+      const alertMessageDiv = document.getElementById("alertMessage");
+
+      if (soldierId) {
+        alertMessageDiv.textContent = `Alert sent to Soldier ID: ${soldierId}`;
+      } else {
+        alertMessageDiv.textContent = "Alert sent to all soldiers.";
+      }
+
+      alertMessageDiv.style.display = "block";
+
+      document.getElementById("soldierId").value = "";
+      document.getElementById("message").value = "";
+    }
+
+    // Function to go back to the dashboard (replace with actual dashboard URL)
+    function goBackToDashboard() {
+      window.location.href = "dashboard.html"; // Update with the actual URL of your dashboard
+    }
+  </script>
+</body>
+</html>
